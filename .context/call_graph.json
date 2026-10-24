@@ -1,0 +1,98 @@
+{
+  ".agents/skills/get-immediate-context/scripts/call_graph.py": {
+    "file": ".agents/skills/get-immediate-context/scripts/call_graph.py",
+    "imports": [
+      "json",
+      "sys",
+      "os",
+      "pathlib",
+      "re"
+    ],
+    "dependents": []
+  },
+  ".agents/skills/get-immediate-context/scripts/code_embeddings.py": {
+    "file": ".agents/skills/get-immediate-context/scripts/code_embeddings.py",
+    "imports": [
+      "json",
+      "math",
+      "sys",
+      "os",
+      "pathlib",
+      "fastembed",
+      "re",
+      "hashlib"
+    ],
+    "dependents": [
+      ".agents/skills/get-immediate-context/scripts/hybrid_search.py"
+    ]
+  },
+  ".agents/skills/get-immediate-context/scripts/diff_impact.py": {
+    "file": ".agents/skills/get-immediate-context/scripts/diff_impact.py",
+    "imports": [
+      "pathlib",
+      "sys",
+      "re",
+      "subprocess"
+    ],
+    "dependents": []
+  },
+  ".agents/skills/get-immediate-context/scripts/fetch_context.py": {
+    "file": ".agents/skills/get-immediate-context/scripts/fetch_context.py",
+    "imports": [
+      "json",
+      "sys",
+      "os",
+      "pathlib",
+      "datetime",
+      "re",
+      "subprocess"
+    ],
+    "dependents": []
+  },
+  ".agents/skills/get-immediate-context/scripts/hybrid_search.py": {
+    "file": ".agents/skills/get-immediate-context/scripts/hybrid_search.py",
+    "imports": [
+      "json",
+      "math",
+      "sys",
+      "pathlib",
+      "code_embeddings"
+    ],
+    "dependents": []
+  },
+  ".agents/skills/get-immediate-context/scripts/mem_search.py": {
+    "file": ".agents/skills/get-immediate-context/scripts/mem_search.py",
+    "imports": [
+      "pathlib",
+      "sys"
+    ],
+    "dependents": []
+  },
+  ".agents/skills/get-immediate-context/scripts/progressive_disclosure.py": {
+    "file": ".agents/skills/get-immediate-context/scripts/progressive_disclosure.py",
+    "imports": [
+      "pathlib",
+      "sys"
+    ],
+    "dependents": [
+      ".agents/skills/get-immediate-context/scripts/call_graph.py",
+      ".agents/skills/get-immediate-context/scripts/code_embeddings.py",
+      ".agents/skills/get-immediate-context/scripts/diff_impact.py",
+      ".agents/skills/get-immediate-context/scripts/fetch_context.py",
+      ".agents/skills/get-immediate-context/scripts/symbol_indexer.py"
+    ]
+  },
+  ".agents/skills/get-immediate-context/scripts/symbol_indexer.py": {
+    "file": ".agents/skills/get-immediate-context/scripts/symbol_indexer.py",
+    "imports": [
+      "json",
+      "ast",
+      "sys",
+      "os",
+      "pathlib",
+      "re",
+      "subprocess"
+    ],
+    "dependents": []
+  }
+}
