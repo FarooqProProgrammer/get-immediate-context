@@ -293,22 +293,62 @@ python .agents/skills/get-immediate-context/scripts/code_embeddings.py --search 
 python .agents/skills/get-immediate-context/scripts/code_embeddings.py --info
 ```
 
----
-
-## 🎯 Cursor IDE One-Click Setup (`install-cursor.sh`)
-
-To automatically configure **Cursor IDE** with skills, rules, and lifecycle hooks:
-
+### 6. `hybrid_search.py` - BM25 Lexical + Dense Vector RRF Fusion
+Blends exact symbol and keyword search with dense semantic vectors using Reciprocal Rank Fusion:
 ```bash
-bash install-cursor.sh
+# Search using fused BM25 + Vector scoring:
+python .agents/skills/get-immediate-context/scripts/hybrid_search.py "BM25Okapi"
 ```
 
-### What `install-cursor.sh` Configures:
-1. **Cursor Skills Package**: Installs `get-immediate-context` directly into `.cursor/skills/` (including `SKILL.md`, `scripts/`, and `references/`).
-2. **Modern Cursor Rule (`.cursor/rules/immediate-context.mdc`)**: Configures Cursor's always-active rule instructing Agent and Composer to consult `CONTEXT_BRIEF.md`, enforce domain invariants, and use symbol line locations.
-3. **Legacy Fallback (`.cursorrules`)**: Root-level rules for Cursor Composer and Chat prompts.
-4. **Cursor Lifecycle Hook (`.cursor/hooks/update-context.sh`)**: Background script to keep the brief and line numbers updated.
-5. **Git Hooks (`.git/hooks/`)**: Registers `post-checkout`, `post-commit`, and `post-merge` hooks to automatically re-verify context whenever you switch branches or make commits in Cursor.
+### 7. `diff_impact.py` - Git Diff Invariant Guardian
+Inspects current git diff against confirmed domain invariants (`[INV-xxx]`) and alerts if business rules are touched:
+```bash
+# Check working tree changes against invariants:
+python .agents/skills/get-immediate-context/scripts/diff_impact.py
+
+# Enforce strict exit code in pre-commit hooks or CI:
+python .agents/skills/get-immediate-context/scripts/diff_impact.py --strict
+```
+
+### 8. `call_graph.py` - Dependency Graph & Blast Radius Calculator
+Maps inter-module import relationships and calculates the ripple effect (downstream impact) of refactoring:
+```bash
+# Map entire module dependency graph:
+python .agents/skills/get-immediate-context/scripts/call_graph.py
+
+# Calculate blast radius for a specific module:
+python .agents/skills/get-immediate-context/scripts/call_graph.py --impact code_embeddings
+```
+
+### 9. `watch_context.py` - Real-Time Context Watcher Daemon
+Background daemon that detects file saves and updates symbol line numbers and embeddings in <15ms:
+```bash
+python .agents/skills/get-immediate-context/scripts/watch_context.py
+```
+
+---
+
+## 🎯 Universal One-Click IDE Installers
+
+Easily configure your preferred AI coding environment with a single shell script:
+
+| Environment | Command | What It Configures |
+|---|---|---|
+| **Cursor IDE** | `bash install-cursor.sh` | `.cursor/skills/`, `.cursor/rules/immediate-context.mdc`, `.cursorrules`, and git hooks |
+| **Claude Code** | `bash install-claude.sh` | Root `CLAUDE.md`, `.claude/config.json`, and agent memory settings |
+| **VS Code / Cline / Roo** | `bash install-vscode.sh` | `.clinerules`, `.vscode/tasks.json` (auto-refresh and invariant checks) |
+| **All Environments** | `bash install-all.sh` | Configures Cursor, Claude Code, and VS Code in one execution |
+
+---
+
+## 🧪 Benchmark Eval Suite (`eval.yaml`)
+
+Conforming to the [Agent Skills Specification](https://agentskills.io/specification), the skill includes a 5-stimuli benchmark suite in `.agents/skills/get-immediate-context/eval.yaml`:
+1. **Unfamiliar Monorepo Topology Discovery**: Validates dynamic package discovery without folder assumptions.
+2. **Hard Gate Stale Brief Detection**: Validates blocking of edits when git HEAD diverges from brief state.
+3. **Domain Invariant Extraction & Guardian**: Benchmarks invariant preservation during refactoring tasks.
+4. **Privacy Control & Secret Shielding**: Verifies `<private>` tag redaction and API key masking.
+5. **Hybrid Retrieval & Blast Radius Analysis**: Measures precision of BM25 + Vector RRF search and dependency mapping.
 
 ---
 
@@ -322,10 +362,15 @@ your-repository/
 │   └── skills/
 │       └── get-immediate-context/
 │           ├── SKILL.md
+│           ├── eval.yaml
 │           ├── scripts/
 │           │   ├── fetch_context.py
 │           │   ├── symbol_indexer.py
 │           │   ├── code_embeddings.py
+│           │   ├── hybrid_search.py
+│           │   ├── diff_impact.py
+│           │   ├── call_graph.py
+│           │   ├── watch_context.py
 │           │   ├── mem_search.py
 │           │   └── progressive_disclosure.py
 │           └── references/

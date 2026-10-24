@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 """
-hybrid_search.py - Hybrid Code Retrieval (BM25 Lexical + Dense Vector RRF Fusion)
+hybrid_search.py - Smart Intent-Aware Hybrid Code & Documentation Retrieval
 
 Combines:
   1. BM25 Lexical Term Scoring (Exact symbol, keyword, and token match)
   2. Dense Cosine Similarity (Conceptual & semantic match from code_embeddings.py)
-  3. Reciprocal Rank Fusion (RRF): Rank = 1/(k + rank_bm25) + 1/(k + rank_dense)
+  3. Intent-Aware Boosting:
+     - "doc/definition/content" intent -> prioritizes Markdown (.md, .mdc)
+     - "code/implementation/function" intent -> prioritizes source code (.py, .ts, etc.)
+  4. Exact Verbatim Substring Matching Boost
+  5. Reciprocal Rank Fusion (RRF): Rank = 1/(k + rank_bm25) + 1/(k + rank_dense)
 Zero external dependencies.
 """
 
 import sys
+import re
 import math
 import json
 from pathlib import Path
@@ -28,6 +33,32 @@ try:
     import code_embeddings
 except ImportError:
     code_embeddings = None
+
+# ---------------------------------------------------------
+# Intent Classification & File Type Prioritization
+# ---------------------------------------------------------
+DOC_INTENT_KEYWORDS = {
+    "definition", "skill", "reference", "content", "written", "text",
+    "described", "docs", "doc", "spec", "rule", "rules", "where is it mentioned",
+    "markdown", "readme", "explain", "meaning", "guide", "on which file"
+}
+
+CODE_INTENT_KEYWORDS = {
+    "code", "function", "class", "def", "implement", "implementation", "logic",
+    "script", "run", "execute", "handler", "method", "variable", "syntax", "source"
+}
+
+def detect_query_intent(query: str) -> str:
+    """Classifies user intent as 'doc', 'code', or 'neutral'."""
+    q_words = set(re.findall(r"[a-z]+", query.lower()))
+    doc_overlap = len(q_words & DOC_INTENT_KEYWORDS)
+    code_overlap = len(q_words & CODE_INTENT_KEYWORDS)
+
+    if doc_overlap > code_overlap:
+        return "doc"
+    elif code_overlap > doc_overlap:
+        return "code"
+    return "neutral"
 
 # ---------------------------------------------------------
 # BM25 Lexical Scoring Engine
@@ -59,7 +90,6 @@ class BM25Okapi:
         self.avg_doc_len = total_len / n_docs if n_docs > 0 else 1.0
 
         for t, freq in df.items():
-            # Standard Lucene/BM25 IDF formula
             self.idf[t] = math.log(1.0 + (n_docs - freq + 0.5) / (freq + 0.5))
 
     def get_scores(self, query_tokens: list[str]) -> list[float]:
@@ -77,10 +107,9 @@ class BM25Okapi:
         return scores
 
 # ---------------------------------------------------------
-# Reciprocal Rank Fusion (RRF)
+# Reciprocal Rank Fusion (RRF) with Intent Weighting
 # ---------------------------------------------------------
 def reciprocal_rank_fusion(ranked_lists: list[list[int]], k: int = 60) -> dict[int, float]:
-    """Blends multiple ranked lists using Reciprocal Rank Fusion."""
     rrf_scores = {}
     for r_list in ranked_lists:
         for rank, doc_idx in enumerate(r_list, start=1):
@@ -88,7 +117,7 @@ def reciprocal_rank_fusion(ranked_lists: list[list[int]], k: int = 60) -> dict[i
     return rrf_scores
 
 def perform_hybrid_search(repo_root: Path, query: str, top_k: int = 5):
-    """Executes BM25 and Vector search, fuses with RRF, and outputs top ranked results."""
+    """Executes BM25 and Vector search, applies intent & phrase boosts, fuses via RRF."""
     embeddings_file = repo_root / ".context" / "embeddings.json"
     if not embeddings_file.is_file():
         if code_embeddings:
@@ -109,7 +138,10 @@ def perform_hybrid_search(repo_root: Path, query: str, top_k: int = 5):
         print("[!] No code chunks available for search.")
         return
 
-    query_tokens = code_embeddings.tokenize_code(query) if code_embeddings else query.lower().split()
+    # Detect user intent
+    intent = detect_query_intent(query)
+    clean_query = query.lower()
+    query_tokens = code_embeddings.tokenize_code(query) if code_embeddings else clean_query.split()
 
     # 1. BM25 Lexical Ranking
     bm25 = BM25Okapi(chunks)
@@ -121,15 +153,43 @@ def perform_hybrid_search(repo_root: Path, query: str, top_k: int = 5):
     vector_scores = [code_embeddings.cosine_similarity(query_vec, c["vector"]) for c in chunks]
     vector_ranked = sorted(range(len(chunks)), key=lambda idx: vector_scores[idx], reverse=True)
 
-    # 3. Fuse via RRF
+    # 3. Base RRF Fusion
     fused_scores = reciprocal_rank_fusion([bm25_ranked, vector_ranked], k=60)
-    final_ranked = sorted(fused_scores.keys(), key=lambda idx: fused_scores[idx], reverse=True)
 
+    # 4. Intent & Exact Match Re-ranking
+    # Extract significant phrases from query (>= 3 words)
+    words = re.findall(r"[A-Za-z0-9_\-]+", clean_query)
+    phrases = []
+    if len(words) >= 3:
+        phrases.append(" ".join(words[:3]))
+        phrases.append(" ".join(words[:4]))
+        phrases.append(" ".join(words))
+
+    for idx, chunk in enumerate(chunks):
+        file_path = chunk["file"].lower()
+        snippet = chunk.get("snippet", "").lower()
+        title = chunk.get("title", "").lower()
+
+        # Intent boost
+        is_doc = file_path.endswith((".md", ".mdc", ".txt", ".json"))
+        if intent == "doc" and is_doc:
+            fused_scores[idx] *= 1.35  # boost documentation when user asks for content/definition
+        elif intent == "code" and not is_doc:
+            fused_scores[idx] *= 1.35  # boost code when user asks for functions/implementation
+
+        # Exact multi-word phrase bonus
+        for phrase in phrases:
+            if len(phrase) > 10 and (phrase in snippet or phrase in title):
+                fused_scores[idx] += 0.020  # decisive boost for verbatim text match
+                break
+
+    final_ranked = sorted(fused_scores.keys(), key=lambda idx: fused_scores[idx], reverse=True)
     top_matches = final_ranked[:top_k]
 
-    print(f"\n=== ⚡ Hybrid Search: '{query}' (BM25 + Dense Vector RRF) ===")
-    print(f"{'RRF Score':<11} | {'BM25':<8} | {'Cosine':<8} | {'Location':<40} | {'Snippet'}")
-    print("-" * 105)
+    intent_label = f"Intent: {intent.upper()}" if intent != "neutral" else "Intent: GENERAL"
+    print(f"\n=== ⚡ Smart Hybrid Search: '{query}' ({intent_label} | BM25 + Vector RRF) ===")
+    print(f"{'RRF Score':<11} | {'BM25':<8} | {'Cosine':<8} | {'Location':<42} | {'Snippet'}")
+    print("-" * 110)
 
     for idx in top_matches:
         chunk = chunks[idx]
@@ -138,10 +198,10 @@ def perform_hybrid_search(repo_root: Path, query: str, top_k: int = 5):
         v_score = vector_scores[idx]
         loc = f"{chunk['file']}:L{chunk['start_line']}-L{chunk['end_line']}"
         snippet = chunk.get("snippet", "")
-        if len(snippet) > 35: snippet = snippet[:32] + "..."
-        print(f"{rrf:.4f}     | {b_score:.2f}   | {v_score*100:.1f}%  | {loc[:40]:<40} | {snippet}")
+        if len(snippet) > 38: snippet = snippet[:35] + "..."
+        print(f"{rrf:.4f}     | {b_score:.2f}   | {v_score*100:.1f}%  | {loc[:42]:<42} | {snippet}")
 
-    print("\n💡 Tip: Hybrid search eliminates vocabulary mismatch by uniting lexical accuracy with semantic intent.")
+    print("\n💡 Tip: Intent detection automatically prioritizes documentation (.md) for definitions and code (.py) for functions.")
 
 def main():
     repo_root = Path.cwd()
