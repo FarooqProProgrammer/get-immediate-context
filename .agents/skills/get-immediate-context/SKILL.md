@@ -167,6 +167,11 @@ tags: [context-brief, orientation, memory]
 ## 8. Local My Work & Review Queue
 - **Active Task**: Current task objective
 - **Handoff / Next**: Pending actions or items in review queue
+
+## 9. Live Code Location & Symbol Index (Module -> File : Line)
+| Module / File | Key Symbol | Line Location |
+|---|---|---|
+| `<module_path>` | `class ...` / `def ...()` | `L<start>-L<end>` |
 ```
 
 ---

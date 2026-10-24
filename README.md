@@ -246,6 +246,16 @@ python scripts/fetch_context.py
 python scripts/fetch_context.py --force
 ```
 
+### 2. `symbol_indexer.py` - Live Module & Symbol Line Locator
+Extracts every module's functions and classes with exact line ranges (`L14-L85`) using native AST (Python) and regex (TypeScript, JS, Go, Rust, C#, Java). Updates live after every prompt in <50ms:
+```bash
+# Update Section 9 in CONTEXT_BRIEF.md with current line numbers:
+python scripts/symbol_indexer.py
+
+# Instant locate: find where any function/class lives and on which line:
+python scripts/symbol_indexer.py --locate sanitize
+```
+
 ### 2. `mem_search.py` - 3-Step Smart Project Memory Search
 Query past decisions, invariants, or configuration keywords with token estimates before loading:
 ```bash
