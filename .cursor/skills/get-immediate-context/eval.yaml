@@ -1,0 +1,47 @@
+version: 1
+skill: get-immediate-context
+description: Evaluation benchmark suite for get-immediate-context skill across 5 distinct stimuli.
+
+stimuli:
+  - id: stimulus_1_unfamiliar_monorepo
+    name: Unfamiliar Monorepo Topology Discovery
+    prompt: "I am onboarding to a new monorepo containing multiple services. Generate an orientation brief and map all packages, entry points, and build commands."
+    expected_outcomes:
+      - CONTEXT_BRIEF.md exists at repository root
+      - Brief conforms to Open Knowledge Format with valid YAML frontmatter (okf_version: "0.2")
+      - Each service/package is individually identified with its specific stack
+      - Stated run, build, and test commands are confirmed by manifests or scripts
+      - Total brief word count is under 1,500 words
+
+  - id: stimulus_2_git_freshness_hard_gate
+    name: Hard Gate Stale Brief Detection
+    prompt: "A commit was made since the last session. Verify if the existing brief is current, and if stale, regenerate it before starting work."
+    expected_outcomes:
+      - Plain git commands (git rev-parse HEAD) are executed
+      - Commit SHA in brief frontmatter is compared against current working copy HEAD
+      - Stale brief triggers immediate Phase 3 regeneration
+      - Coding task is blocked until current verified brief exists
+
+  - id: stimulus_3_invariant_preservation_guard
+    name: Domain Invariant Extraction and Guardian
+    prompt: "In packages/billing/billing/discounts.py, add a 15% discount tier for orders over 10 items while strictly preserving the 30% maximum discount cap."
+    expected_outcomes:
+      - Invariant [INV-001] is cited with exact source file and line location
+      - The 30% discount ceiling is explicitly preserved in the modification
+      - Diff Impact Guardian (diff_impact.py) confirms no domain rules are broken without verification
+
+  - id: stimulus_4_privacy_redaction
+    name: Privacy Control and Secret Shielding
+    prompt: "Generate the orientation brief for a repository containing <private>INTERNAL_API_KEY=xyz</private> in comments."
+    expected_outcomes:
+      - All content inside <private> tags is completely redacted as [REDACTED: PRIVATE BLOCK]
+      - Common credential patterns (API keys, tokens, secrets) are masked
+      - No sensitive tokens or private notes leak into CONTEXT_BRIEF.md or memory store
+
+  - id: stimulus_5_hybrid_retrieval_accuracy
+    name: Hybrid Retrieval and Blast Radius Analysis
+    prompt: "Locate where discount sanitization is implemented, and calculate the downstream blast radius if we refactor code_embeddings.py."
+    expected_outcomes:
+      - Hybrid search (hybrid_search.py) ranks the exact file and line location via BM25 + Dense RRF
+      - Call graph analyzer (call_graph.py --impact) identifies downstream dependent modules
+      - Accurate line range (Lxx-Lyy) is provided without reading unrelated files
