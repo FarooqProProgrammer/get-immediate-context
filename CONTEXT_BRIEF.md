@@ -3,10 +3,10 @@ okf_version: "0.2"
 type: ContextBrief
 title: "get-immediate-context Context Brief"
 description: "High-signal repository orientation, architecture, and domain invariants."
-git_commit: "d548d4b15098ba376f981782eefbdd251fc13c8e"
+git_commit: "7bb5093b82ef59acccbc24229c56afba48b9ae67"
 git_branch: "master"
 repo_type: single-project
-timestamp: "2026-10-24T17:12:56Z"
+timestamp: "2026-10-24T17:22:57Z"
 tags: [context-brief, orientation, architecture]
 ---
 

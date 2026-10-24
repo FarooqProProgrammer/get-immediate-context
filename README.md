@@ -295,6 +295,23 @@ python .agents/skills/get-immediate-context/scripts/code_embeddings.py --info
 
 ---
 
+## 🎯 Cursor IDE One-Click Setup (`install-cursor.sh`)
+
+To automatically configure **Cursor IDE** with skills, rules, and lifecycle hooks:
+
+```bash
+bash install-cursor.sh
+```
+
+### What `install-cursor.sh` Configures:
+1. **Cursor Skills Package**: Installs `get-immediate-context` directly into `.cursor/skills/` (including `SKILL.md`, `scripts/`, and `references/`).
+2. **Modern Cursor Rule (`.cursor/rules/immediate-context.mdc`)**: Configures Cursor's always-active rule instructing Agent and Composer to consult `CONTEXT_BRIEF.md`, enforce domain invariants, and use symbol line locations.
+3. **Legacy Fallback (`.cursorrules`)**: Root-level rules for Cursor Composer and Chat prompts.
+4. **Cursor Lifecycle Hook (`.cursor/hooks/update-context.sh`)**: Background script to keep the brief and line numbers updated.
+5. **Git Hooks (`.git/hooks/`)**: Registers `post-checkout`, `post-commit`, and `post-merge` hooks to automatically re-verify context whenever you switch branches or make commits in Cursor.
+
+---
+
 ## 📂 Installation & Setup
 
 Drop the skill into your project's `.agents/skills` directory:
