@@ -54,6 +54,10 @@ Executable Python 3 scripts (standard library only) are bundled under `scripts/`
 - `scripts/mem_search.py`: 3-step progressive memory search across observations and brief records.
 - `scripts/progressive_disclosure.py`: Exports layered context (Level 1, 2, or 3) with token count estimations.
 - `scripts/code_embeddings.py`: Ultra-lightweight 256-dim code embedding generator and semantic search engine (offline & fast).
+- `scripts/hybrid_search.py`: Hybrid BM25 lexical + dense vector RRF search engine uniting keyword precision with semantic intent.
+- `scripts/diff_impact.py`: Git Diff Invariant Guardian alerting when edits impact confirmed domain invariants ([INV-xxx]).
+- `scripts/call_graph.py`: Inter-module dependency analyzer and ripple effect/blast radius calculator.
+- `scripts/watch_context.py`: Real-time file watcher daemon updating symbol locations on file save in <15ms.
 
 ---
 
