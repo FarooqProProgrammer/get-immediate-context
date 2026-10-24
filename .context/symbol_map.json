@@ -1,0 +1,185 @@
+{
+  ".agents/skills/get-immediate-context/scripts/fetch_context.py": [
+    {
+      "symbol": "def sanitize_text()",
+      "kind": "function",
+      "line": 36,
+      "end_line": 41,
+      "loc": "L36-L41"
+    },
+    {
+      "symbol": "def get_git_info()",
+      "kind": "function",
+      "line": 46,
+      "end_line": 70,
+      "loc": "L46-L70"
+    },
+    {
+      "symbol": "def get_directory_stack()",
+      "kind": "function",
+      "line": 97,
+      "end_line": 113,
+      "loc": "L97-L113"
+    },
+    {
+      "symbol": "def parse_workspace_patterns()",
+      "kind": "function",
+      "line": 115,
+      "end_line": 207,
+      "loc": "L115-L207"
+    },
+    {
+      "symbol": "def discover_project_structure()",
+      "kind": "function",
+      "line": 209,
+      "end_line": 290,
+      "loc": "L209-L290"
+    },
+    {
+      "symbol": "def find_entry_points()",
+      "kind": "function",
+      "line": 292,
+      "end_line": 311,
+      "loc": "L292-L311"
+    },
+    {
+      "symbol": "def find_test_commands()",
+      "kind": "function",
+      "line": 313,
+      "end_line": 358,
+      "loc": "L313-L358"
+    },
+    {
+      "symbol": "def extract_invariants()",
+      "kind": "function",
+      "line": 365,
+      "end_line": 399,
+      "loc": "L365-L399"
+    },
+    {
+      "symbol": "def generate_okf_brief()",
+      "kind": "function",
+      "line": 404,
+      "end_line": 530,
+      "loc": "L404-L530"
+    },
+    {
+      "symbol": "def main()",
+      "kind": "function",
+      "line": 532,
+      "end_line": 539,
+      "loc": "L532-L539"
+    }
+  ],
+  ".agents/skills/get-immediate-context/scripts/mem_search.py": [
+    {
+      "symbol": "def search_memory()",
+      "kind": "function",
+      "line": 21,
+      "end_line": 67,
+      "loc": "L21-L67"
+    },
+    {
+      "symbol": "def main()",
+      "kind": "function",
+      "line": 69,
+      "end_line": 88,
+      "loc": "L69-L88"
+    }
+  ],
+  ".agents/skills/get-immediate-context/scripts/progressive_disclosure.py": [
+    {
+      "symbol": "def get_token_count()",
+      "kind": "function",
+      "line": 21,
+      "end_line": 22,
+      "loc": "L21-L22"
+    },
+    {
+      "symbol": "def export_progressive_context()",
+      "kind": "function",
+      "line": 24,
+      "end_line": 67,
+      "loc": "L24-L67"
+    },
+    {
+      "symbol": "def main()",
+      "kind": "function",
+      "line": 69,
+      "end_line": 78,
+      "loc": "L69-L78"
+    }
+  ],
+  ".agents/skills/get-immediate-context/scripts/symbol_indexer.py": [
+    {
+      "symbol": "def extract_python_symbols()",
+      "kind": "function",
+      "line": 56,
+      "end_line": 94,
+      "loc": "L56-L94"
+    },
+    {
+      "symbol": "def extract_regex_symbols()",
+      "kind": "function",
+      "line": 96,
+      "end_line": 120,
+      "loc": "L96-L120"
+    },
+    {
+      "symbol": "def index_file()",
+      "kind": "function",
+      "line": 122,
+      "end_line": 134,
+      "loc": "L122-L134"
+    },
+    {
+      "symbol": "def get_git_modified_files()",
+      "kind": "function",
+      "line": 136,
+      "end_line": 148,
+      "loc": "L136-L148"
+    },
+    {
+      "symbol": "def build_symbol_index()",
+      "kind": "function",
+      "line": 150,
+      "end_line": 172,
+      "loc": "L150-L172"
+    },
+    {
+      "symbol": "def save_symbol_index()",
+      "kind": "function",
+      "line": 174,
+      "end_line": 179,
+      "loc": "L174-L179"
+    },
+    {
+      "symbol": "def locate_symbol()",
+      "kind": "function",
+      "line": 181,
+      "end_line": 205,
+      "loc": "L181-L205"
+    },
+    {
+      "symbol": "def generate_symbol_markdown_summary()",
+      "kind": "function",
+      "line": 207,
+      "end_line": 227,
+      "loc": "L207-L227"
+    },
+    {
+      "symbol": "def update_live_code_locations()",
+      "kind": "function",
+      "line": 229,
+      "end_line": 246,
+      "loc": "L229-L246"
+    },
+    {
+      "symbol": "def main()",
+      "kind": "function",
+      "line": 248,
+      "end_line": 261,
+      "loc": "L248-L261"
+    }
+  ]
+}

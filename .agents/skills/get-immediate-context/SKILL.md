@@ -1,334 +1,204 @@
 ---
 name: get-immediate-context
-description: Rapidly orients an AI agent to an unfamiliar single-project repository or monorepo at session start before any task begins. Inspects manifests, git status, layout, and domain rules to create or verify an under-1500-word context brief formatted according to the Open Knowledge Format (OKF) at the repo root. USE FOR: session start, unfamiliar codebases, repository orientation, repo onboarding, mapping monorepos, extracting domain business logic, checking stale context briefs. DO NOT USE FOR: task-specific code generation, refactoring, or broad codebase-wide file reading.
+description: Rapidly orients an AI agent at session start with persistent cross-session memory, progressive disclosure, smart search, and privacy controls. Generates and verifies an Open Knowledge Format (OKF) context brief under 1500 words at repo root. USE FOR: session start, unfamiliar codebases, repository orientation, persistent memory, team context sharing, privacy-filtered context injection. DO NOT USE FOR: task-specific code generation, refactoring, or broad codebase-wide file reading.
 ---
 
 # Get Immediate Context
 
-Orient rapidly to an unfamiliar codebase at the start of any session before beginning task work. This skill inspects repository structures, manifests, git status, and core business rules across any language or stack, establishing a factual context brief saved as `CONTEXT_BRIEF.md` at the repository root formatted according to the **Open Knowledge Format (OKF)**.
+An autonomous orientation and memory skill that establishes factual, persistent codebase context across sessions. It surveys repository topology, verifies git state, enforces privacy controls, extracts domain business rules with citation IDs, and maintains an Open Knowledge Format (OKF) context brief (`CONTEXT_BRIEF.md`) at the repository root.
+
+## Key Capabilities
+
+- 🧠 **Persistent Memory**: Context and domain insights survive across sessions via OKF logs and local briefs.
+- 📊 **Progressive Disclosure**: 3-tiered memory retrieval (Index → Brief → Deep Dive) with token cost visibility.
+- 🔍 **Smart Search (`mem-search`)**: 3-step structured retrieval over project history (Index → Match → Fetch).
+- 🖥️ **Local My Work**: Tracks live requests, active progress, human handoffs, and review queues.
+- 👥 **TeamBrain**: Collaborative workspace sharing verified findings and package maps with member attribution while keeping personal notes isolated.
+- 💻 **Desktop & CLI Interoperability**: Seamlessly accessible from IDE agents, Claude Desktop, and CLI tooling.
+- 🔒 **Privacy Control**: Strips content bounded by private markers (`<private>...</private>`) and secrets from storage.
+- ⚙️ **Context Configuration**: Fine-grained controls (`.contextrc`) defining what sections get injected into prompts.
+- 📍 **Live Module & Line Location Map**: AST & regex indexer tracking where every class/function lives (`file:line-range`), updating automatically after every prompt/edit.
+- 🤖 **Automatic Operation**: Executes automatically on session start without manual invocation.
+- 🔗 **Citations**: Attaches persistent observation IDs (e.g., `OBS-001`, `INV-012`) linking facts to files, lines, and commits.
 
 ## When to Use
 
-- Starting a new agent session in any repository before any task begins
-- Onboarding to an unfamiliar codebase or monorepo without blind exploration
-- Verifying whether existing codebase documentation matches current git state
-- Identifying distinct packages, dependencies, and entry points in a monorepo
-- Extracting confirmed domain invariants and business rules prior to implementing features or fixes
-- Publishing or standardizing repository knowledge in an open, vendor-neutral format consumable by humans and any AI agent
+- Session start in any single-project or monorepo to establish instant orientation
+- Maintaining long-lived project memory, architecture decisions, and domain invariants across sessions
+- Querying past project decisions, bug investigations, and review queues via smart search
+- Sharing curated team knowledge without leaking personal or sensitive credentials
 
 ## When Not to Use
 
-- Executing specific refactoring, bug fixes, or code edits once context is established (use task-specific implementation workflows)
-- Deep full-codebase code reviews or lint audits
-- Arbitrary full-text reads of every source file in the repository
+- Writing task-specific feature code or refactoring after orientation is complete
+- Whole-codebase bulk file dumping into active context
 
-## Inputs
+## Inputs & Configuration
 
-| Input | Required | Description |
-|-------|----------|-------------|
-| `repo_root` | Yes | Path to the repository root directory (where `.git` resides or workspace root) |
-| `task_description` | Optional | The user's intended task to help guide selective-depth reads after orientation |
-| `brief_filename` | Optional | Filename for the markdown brief (defaults to `CONTEXT_BRIEF.md` at repository root) |
+The skill reads configuration from `.contextrc` (JSON/YAML) or uses sensible defaults:
 
-## Trigger Conditions and Session Lifecycle
+| Input / Setting | Type | Default | Description |
+|-----------------|------|---------|-------------|
+| `repo_root` | Path | Working directory | Root directory containing `.git` or workspace manifests |
+| `privacy_filter` | Boolean | `true` | Automatically strip `<private>` tags, API keys, and `.env` data |
+| `max_brief_words` | Integer | `1500` | Word ceiling for generated brief (<500 for single projects) |
+| `team_sync` | Boolean | `false` | Enable TeamBrain synchronization for shared findings |
+| `injection_level` | Integer (1-3) | `2` | Progressive disclosure level (1=Index, 2=Brief, 3=Deep Dive) |
 
-This skill triggers at **every session start** in a repository prior to executing any user prompt or modification task. The agent must complete the four phases in order and confirm the hard gate before proceeding to task execution.
+## Bundled Helper Scripts
 
-```
-Session Start ──> Phase 1: Discovery
-                       │
-                  Phase 2: Changes (Git State Check)
-                       │
-                  Phase 3: Hard Gate ──[Stale/Missing]──> Regenerate Brief (OKF Format)
-                       │                                         │
-                  [Valid & Current] <────────────────────────────┘
-                       │
-                  Phase 4: Business Logic Extraction
-                       │
-                  Context Gathered ──> Proceed to Task
-```
+Executable Python 3 scripts (standard library only) are bundled under `scripts/`:
+- `scripts/fetch_context.py`: Immediately inspects the codebase, enforces privacy, and writes/refreshes `CONTEXT_BRIEF.md`.
+- `scripts/symbol_indexer.py`: Live module & symbol location mapper (Python AST + polyglot regex) indexing exact line numbers (`L42-L80`), updated after every edit/prompt.
+- `scripts/mem_search.py`: 3-step progressive memory search across observations and brief records.
+- `scripts/progressive_disclosure.py`: Exports layered context (Level 1, 2, or 3) with token count estimations.
 
 ---
 
 ## Session Workflow
 
-Execute these four phases sequentially:
+On every session start, the skill runs five automated phases:
+
+```
+Session Start ──> 1. Discovery ──> 2. Changes (Git Check) ──> 3. Hard Gate
+                                                                    │
+      Proceed to Task <── 5. Persistence <── 4. Business Logic <────┘
+                          & My Work
+```
 
 ### Phase 1: Discovery (Repository Topology)
+1. Read `README.md`, manifests (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`), and workspace configs (`pnpm-workspace.yaml`, `go.work`).
+2. Classify as **Single Project** or **Monorepo**; map every package, its stack, entry points, and purpose.
 
-Determine repository type and map high-signal anchors without reading entire directories:
+### Phase 2: Changes (Git State Check)
+1. Read OKF YAML frontmatter in `CONTEXT_BRIEF.md` (`git_commit`, `git_branch`, `timestamp`).
+2. Run plain git checks: `git rev-parse HEAD`, `git rev-parse --abbrev-ref HEAD`, `git status --porcelain`.
+3. If commit SHA and branch match and configs are clean: reuse existing memory (0 token regeneration cost). If changed: flag as stale.
 
-1. **Locate Workspace Root and Docs**: Read `README.md`, `README.*`, or architecture docs in root. Extract the stated purpose of the project.
-2. **Determine Architecture (Single Project vs Monorepo)**:
-   - Check for workspace configuration files: `pnpm-workspace.yaml`, `lerna.json`, `rush.json`, `package.json` with `workspaces`, `Cargo.toml` with `[workspace]`, `go.work`, `settings.gradle` / `pom.xml` modules, or directories like `packages/`, `services/`, `apps/`, `libs/`.
-   - If monorepo: list each distinct service/package, identify its directory, primary language, and purpose.
-   - If single project: identify the central manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`, `build.gradle`, `*.csproj`, etc.).
-3. **Map Entry Points and Structure**:
-   - Locate main entry points (e.g., `main.go`, `src/index.ts`, `app.py`, `Program.cs`, `cmd/`).
-   - Run a shallow top-level tree/listing (max depth 2-3) to establish key modules and directory boundaries.
+### Phase 3: Hard Gate (Verification Checkpoint)
+- Confirm valid, current brief exists before executing any task.
+- If missing or stale: regenerate immediately.
+- If directory is unversioned or details cannot be confirmed: log gaps under **Explicit Boundaries** rather than guessing.
 
-### Phase 2: Changes (Git State Verification)
+### Phase 4: Business Logic Extraction & Citations
+1. Locate core domain validators, state machines, and calculations.
+2. Assign **Observation IDs** (e.g., `[INV-001]`, `[OBS-023]`) citing exact file and line references (e.g., `packages/billing/billing/discounts.py:42`).
+3. State only what code confirms; flag ambiguous logic.
 
-Compare current working copy state against the recorded brief using **plain git commands only**:
-
-1. **Read Existing Brief Header**: Check if `CONTEXT_BRIEF.md` exists at repository root. Extract its OKF YAML frontmatter (`git_commit`, `git_branch`, `timestamp`).
-2. **Execute Git Commands**:
-   ```bash
-   git rev-parse --abbrev-ref HEAD
-   git rev-parse HEAD
-   git status --porcelain
-   ```
-3. **Evaluate Freshness**:
-   - If `HEAD` matches recorded SHA, branch matches, and manifests/configuration files have no uncommitted changes in `git status`: **Brief is current**. Skip full regeneration.
-   - If `HEAD` differs, branch differs, or any build/manifest/source configuration has changed: **Brief is stale**. Trigger Phase 3 regeneration.
-   - If git is not installed or directory is not a git repository: Record this limitation explicitly in the brief and proceed with discovery data.
-
-### Phase 3: Hard Gate (Enforcement Checkpoint)
-
-Before starting any task work:
-- Confirm that `CONTEXT_BRIEF.md` exists at the repository root, conforms to Open Knowledge Format (YAML frontmatter + Markdown body), and matches current git state.
-- If missing, stale, or unverified: **Regenerate the brief immediately**.
-- Do not make assumptions or start writing code with an unverified or absent brief.
-- Where a detail cannot be confirmed from files, record the uncertainty explicitly in the brief under "Explicit Boundaries" rather than guessing.
-
-### Phase 4: Business Logic Extraction
-
-Surface the actual domain rules and behaviors enforced by the codebase:
-
-1. **Locate Core Domain Areas**: Focus on domain models, entity validators, state machines, policy engines, pricing/calculation routines, or permission matrices.
-2. **Identify Invariants**:
-   - Input validation limits and requirements
-   - Allowable state transitions (e.g., `PENDING` -> `APPROVED` -> `FULFILLED`)
-   - Calculation rules, fees, permissions, or access gates
-3. **Cite Exact Files**: For every business rule documented, cite the defining file and line/symbol reference (e.g., `src/billing/tier.py:calculate_discount`).
-4. **Flag Ambiguities**: If a rule cannot be determined conclusively without runtime inspection or missing schemas, note it as an open question.
+### Phase 5: Persistence & Local My Work
+1. Update `CONTEXT_BRIEF.md` and append any new observations to the session ledger.
+2. Initialize or refresh **Local My Work** tracking current active request, next steps, and review queue items.
 
 ---
 
-## Context Gathering Strategy
+## Progressive Disclosure & Smart Search
 
-To remain fast, lightweight, and prevent context bloat, sequence information retrieval using these principles:
+### 3-Tier Progressive Disclosure
 
-### 1. Triage Order
-Start strictly with the highest-signal sources in this order:
-1. `README.md` and repository-level docs
-2. Primary manifests and package definitions (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `*.csproj`)
-3. Workspace definitions for monorepos (`pnpm-workspace.yaml`, `go.work`, `Cargo.toml [workspace]`)
-4. Build, test, and container scripts (`Makefile`, `Dockerfile`, `.github/workflows/`, task runners)
-5. Top-level directory layout (shallow depth)
-6. Recent commit history (`git log -n 5 --oneline`) to reveal active areas
+| Level | Scope | Approx Tokens | What is Injected |
+|-------|-------|---------------|------------------|
+| **1: Index** | Metadata only | ~100 tokens | Project name, repo type, git SHA, package list |
+| **2: Brief (Default)** | OKF Context Brief | ~700-1,200 tokens | Architecture, run/test commands, conventions, confirmed invariants |
+| **3: Deep Dive** | Concept Files | On-demand | Specific package implementation details, full history logs |
 
-### 2. Breadth Before Depth
-- Scan symbols, module exports, file listings, and class/function signatures before opening file bodies.
-- Never read all files in a folder. List files first, identify load-bearing files, and read only targeted declarations.
-
-### 3. Selective Depth Matrix
-
-| Context Need | Depth Level | Technique |
-|--------------|-------------|-----------|
-| Architecture overview | Breadth | Top-level directory listing and workspace manifests |
-| Module interfaces | Signatures only | Class/function headers, exported interfaces, types |
-| Entry points & task files | Full contents | Complete file reads of `main.*`, central routers, or files directly modified |
-| Inter-module relations | Dependency graph | `import` / `require` / `use` statements at top of files |
-| Active development | Git commits | `git log -n 5 --oneline -- <path>` |
-| Domain intent | Comments & docstrings | Targeted docstrings and assertions inside domain models |
-
-### 4. Task-Driven Scoping
-When a specific task is provided:
-- Treat files outside the task's import path as signature-only.
-- Read full file contents **only** for files directly involved in the change or tests validating that behavior.
-- Constrain exploration to the relevant service or package in a monorepo.
-
-### 5. Stopping Criteria
-**Stop reading immediately** when you can answer these five points with confidence:
-1. What does this project or service do?
-2. What stack and test runners are used?
-3. Where are the entry points and key modules?
-4. What are the build/run/test commands?
-5. What are the key domain invariants governing the task?
-Do not continue scanning for general completeness.
-
-### 6. Verification Over Inference
-- Do not infer a framework or tool from a folder name alone (e.g., a `tests/` folder does not prove pytest is used; confirm via `pyproject.toml` or `pytest.ini`).
-- Confirm commands by inspecting scripts, package manifests, or CI workflows.
+### Smart Search (`mem-search`) Workflow
+When querying past project history or architectural decisions:
+1. **Index Scan**: Search index for target keywords, observation tags, or commit messages.
+2. **Review Candidates**: Inspect matched observation headers and citation IDs with token costs displayed.
+3. **Selective Fetch**: Retrieve only the specific observation blocks needed for the active task.
 
 ---
 
-## Output Specification: Open Knowledge Format (OKF) Brief
+## Privacy Control & TeamBrain
 
-The brief is saved as a plain markdown file named `CONTEXT_BRIEF.md` directly at the repository root.
+### Privacy Isolation
+- Any block wrapped in `<private>...</private>` markers is **strictly redacted** before saving to `CONTEXT_BRIEF.md` or memory ledgers.
+- Automatically ignores `.env*`, `*.pem`, `id_rsa`, credentials, and bearer tokens.
+- Personal handoff notes and scratchpads remain in local session storage.
 
-### Conformance to Open Knowledge Format (OKF)
-In accordance with the [Open Knowledge Format specification](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing), the document treats context as a portable, vendor-neutral, version-controlled asset:
-- **Format, Not a Platform**: No proprietary SDK or database required; just Markdown and YAML frontmatter.
-- **YAML Frontmatter**: Standard headers housing structured machine-readable metadata (`okf_version`, `type`, `title`, `description`, `git_commit`, `git_branch`, `repo_type`, `timestamp`, `tags`).
-- **Markdown Body**: Clean, readable headings and links that both human engineers and AI models can traverse.
+### TeamBrain Collaboration
+- Curated domain invariants (`INV-*`) and package maps can be exported to a shared team ledger.
+- Each contribution includes member/agent attribution (`author: agent-session-id`, `verified_at: timestamp`).
+- Personal work queues and private notes stay local.
 
-### Word Budget Rules
-- **Simple Single-Project Repositories**: Aim for under **500 words**.
-- **Complex or Multi-Service Monorepos**: Scale up as necessary, but strictly capped at **1,500 words**.
-- Prioritize factual completeness across all required sections over aggressive brevity, but avoid filler text, boilerplate explanations, and long code copies.
+---
 
-### OKF Context Brief Template
+## Output Specification: OKF Context Brief
+
+The brief is saved at the repository root as `CONTEXT_BRIEF.md`.
 
 ```markdown
 ---
 okf_version: "0.2"
 type: ContextBrief
-title: "<Repository Name> Context Brief"
-description: "High-signal repository orientation, architecture, and domain invariants."
+title: "<Repo Name> Context Brief"
+description: "Repository orientation, architecture, and domain invariants."
 git_commit: "<commit-sha>"
 git_branch: "<branch-name>"
 repo_type: single-project | monorepo
 timestamp: "YYYY-MM-DDTHH:MM:SSZ"
-tags:
-  - context-brief
-  - orientation
-  - architecture
+tags: [context-brief, orientation, memory]
 ---
 
-# <Repository Name> Context Brief
+# <Repo Name> Context Brief
 
 ## 1. Purpose
-[1-2 sentences summarizing what problem this software solves and its primary end-users.]
+[Summary of project purpose and problem domain.]
 
 ## 2. Stack & Dependencies
-[For Single Project: Primary language, runtime, key frameworks, and core libraries.]
-[For Monorepo: Table or list broken down per package/service.]
-- **<Service/Package A>**: <Language/Version>, <Framework>, <Core Dependencies>
-- **<Service/Package B>**: <Language/Version>, <Framework>, <Core Dependencies>
+[Single project or per-package table for monorepos.]
 
 ## 3. Layout & Architecture
-- **Entry Points**: `<path>` (Role)
-- **Key Modules**:
-  - `<path>`: Summary of responsibility
-- **Inter-Package / Module Relationships**: How components communicate (e.g. gRPC, HTTP, shared lib).
+- **Entry Points**: `<path>`
+- **Key Modules**: `<path>` - Responsibility
 
-## 4. How to Run, Build, and Test
-- **Install**: `<command>`
-- **Build**: `<command>`
-- **Test**: `<command>`
-- **Run / Dev**: `<command>`
+## 4. Run, Build & Test Commands
+- **Install**: `<command>` | **Build**: `<command>` | **Test**: `<command>`
 
 ## 5. Configuration & Conventions
-- **Configuration Files**: `<file-paths>` and environment variable sources
-- **Code Conventions**: Noteworthy style, typing conventions, or architectural patterns confirmed by code
+- Config sources, environment variables, code conventions.
 
-## 6. Business Logic & Invariants
-- **[Rule 1]**: Explanation of domain rule (Source: `<file>:<symbol_or_line>`)
-- **[Rule 2]**: Validation rule or state transition constraint (Source: `<file>:<symbol_or_line>`)
+## 6. Business Logic & Invariants (Citations)
+- **[INV-001]**: Invariant description (`<file>:<line_or_symbol>`)
 
 ## 7. Explicit Boundaries (Uninspected Areas)
-- [List specific directories, legacy packages, or third-party integrations not inspected during this pass]
+- List of uninspected files, legacy directories, or external integrations.
+
+## 8. Local My Work & Review Queue
+- **Active Task**: Current task objective
+- **Handoff / Next**: Pending actions or items in review queue
 ```
 
 ---
 
 ## Usage Example
 
-### Walkthrough: Monorepo Orientation and Targeted Task
+### Walkthrough: Monorepo with Privacy & Invariant Citations
 
-#### 1. Repository State & Discovery
-The agent is launched in an unfamiliar monorepo `shop-engine`.
-- Agent inspects root: finds `pnpm-workspace.yaml`, `README.md`, and directories `packages/api` and `packages/billing`.
-- Agent checks `git rev-parse HEAD` -> `7f2a1b9` on `main`. No previous `CONTEXT_BRIEF.md` exists.
-- Agent gathers high-signal context and generates `CONTEXT_BRIEF.md` at root in OKF format:
-
-```markdown
----
-okf_version: "0.2"
-type: ContextBrief
-title: "Shop Engine Context Brief"
-description: "Monorepo orientation brief covering API and Billing services."
-git_commit: "7f2a1b9"
-git_branch: "main"
-repo_type: monorepo
-timestamp: "2026-10-24T10:00:00Z"
-tags:
-  - context-brief
-  - orientation
-  - monorepo
----
-
-# Shop Engine Context Brief
-
-## 1. Purpose
-E-commerce engine managing product catalog queries and customer checkout billing.
-
-## 2. Stack & Dependencies
-- **`packages/api`**: TypeScript (Node.js 20), Express 4, Prisma ORM.
-- **`packages/billing`**: Python 3.11, FastAPI, Pydantic v2, Stripe SDK.
-
-## 3. Layout & Architecture
-- `packages/api/src/server.ts`: HTTP API entry point for store client.
-- `packages/billing/billing/main.py`: Internal billing microservice called via HTTP from API service.
-- `packages/billing/billing/discounts.py`: Domain logic for customer discounts and voucher validation.
-
-## 4. How to Run, Build, and Test
-- **Install**: `pnpm install` (root)
-- **Build**: `pnpm build` (runs turbo build across all packages)
-- **Test (API)**: `pnpm --filter api test` (Jest)
-- **Test (Billing)**: `cd packages/billing && pytest`
-
-## 5. Configuration & Conventions
-- `.env.example` defines required `STRIPE_KEY` and `DATABASE_URL`.
-- Pydantic models enforce strict camelCase aliasing for public responses.
-
-## 6. Business Logic & Invariants
-- Orders exceeding 10 items receive tiered discounts, but total discount cannot exceed 30% (`packages/billing/billing/discounts.py:apply_order_discount`).
-- Billing accounts must be in `ACTIVE` state before applying vouchers (`packages/billing/billing/models.py:AccountState`).
-
-## 7. Explicit Boundaries (Uninspected Areas)
-- `packages/api/src/legacy/` was not inspected.
-- Cloud deployment scripts in `.github/workflows/deploy.yml` were not examined.
-```
-
-#### 2. Applying Context to a Coding Task
-**User Prompt**:
-> "In `packages/billing/billing/discounts.py`, add a volume discount tier of 15% for orders over 10 items, but ensure the aggregate discount never exceeds the 30% cap."
-
-**Agent Execution**:
-1. **Hard Gate Passed**: Agent inspects `CONTEXT_BRIEF.md`; parses the OKF frontmatter (`git_commit: "7f2a1b9"`), confirms it matches current HEAD, and validates integrity.
-2. **Task-Driven Scoping**: Agent targets only `packages/billing/billing/discounts.py` and `packages/billing/tests/test_discounts.py`. No other packages or files are read.
-3. **Change Implementation**:
-   - Opens `packages/billing/billing/discounts.py`.
-   - Modifies `apply_order_discount` to incorporate the 15% tier when item count > 10.
-   - Preserves the confirmed invariant: `assert total_discount <= 0.30` or `min(calculated_discount, 0.30)` as cited in Section 6.
-4. **Verification**:
-   - Runs `cd packages/billing && pytest tests/test_discounts.py`. All tests pass.
+1. **Session Start**: Agent starts in `shop-engine` monorepo.
+2. **Discovery & Git Check**: Verifies `pnpm-workspace.yaml`, git SHA `7f2a1b9`.
+3. **Privacy Filter**: Identifies `<private>AWS_SECRET_KEY=...</private>` in local notes and redacts it completely.
+4. **Brief Generation**: Outputs `CONTEXT_BRIEF.md` with OKF frontmatter and citation `[INV-001]`:
+   > `[INV-001]`: Orders > 10 items receive tiered discounts, total discount capped at 30% (`packages/billing/billing/discounts.py:42`).
+5. **Targeted Task**:
+   - User prompt: *"Add a 15% discount tier for orders > 10 items in `discounts.py` without violating the discount cap."*
+   - Agent inspects only `discounts.py`, applies tier, preserves invariant `[INV-001]`, and records progress in Local My Work.
 
 ---
 
 ## Validation Checklist
 
-Before concluding the skill run and proceeding with a task, verify:
-
-- [ ] `CONTEXT_BRIEF.md` is present at the repository root
-- [ ] Brief conforms to Open Knowledge Format (starts with valid YAML frontmatter containing `okf_version`, `type`, `title`, `description`, `git_commit`, `git_branch`, `timestamp`)
-- [ ] Monorepos list each package/service individually with its respective stack
-- [ ] Build, run, and test commands are confirmed by configuration/scripts, not guessed
-- [ ] Every business rule lists the exact file path where it is enforced
-- [ ] Explicit Boundaries section lists all uninspected areas
-- [ ] Word count is strictly under 1,500 words (and under 500 words for simple repos)
-- [ ] No speculative or unverified claims are present
-
----
-
-## Common Pitfalls
-
-| Pitfall | Solution |
-|---------|----------|
-| Missing YAML frontmatter | Follow OKF standard: prefix the markdown brief with parseable YAML frontmatter containing `type: ContextBrief` and version. |
-| Reading all files recursively | Restrict file reads to top-level manifests, entry points, and task-specific paths. |
-| Guessing test or build tools | Check package manifests (`scripts`), `Makefile`, or CI workflows for explicit commands. |
-| Treating a monorepo as a single stack | Identify each package directory and map its individual runtime, language, and dependencies. |
-| Stale brief after git checkout or pull | Re-run git checks on session start; parse frontmatter `git_commit` and regenerate if HEAD changed. |
-| Inventing business logic from names | Only cite domain invariants directly confirmed in code, validators, or docstrings with file citations. |
-| Leaving out uninspected areas | Always include Section 7 ("Explicit Boundaries") so the agent knows where knowledge ceases. |
+- [ ] `CONTEXT_BRIEF.md` exists at repo root with valid OKF YAML frontmatter
+- [ ] Git SHA, branch, and timestamp match current working copy
+- [ ] All sensitive sections marked with private tags are completely excluded
+- [ ] Business logic statements include observation citation IDs with exact file paths
+- [ ] Word count is under 1,500 words (<500 words for simple projects)
+- [ ] Uninspected paths are explicitly recorded under Boundaries
 
 ---
 
 ## References
 
 - [Google Cloud Blog: How the Open Knowledge Format can improve data sharing](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing)
+- [Claude-Mem Architecture & My Work Guide](https://docs.claude-mem.ai/usage/my-work)
 - [Agent Skills Specification](https://agentskills.io/specification)
