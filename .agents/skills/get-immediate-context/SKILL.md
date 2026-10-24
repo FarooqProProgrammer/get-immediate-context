@@ -18,6 +18,7 @@ An autonomous orientation and memory skill that establishes factual, persistent 
 - 🔒 **Privacy Control**: Strips content bounded by private markers (`<private>...</private>`) and secrets from storage.
 - ⚙️ **Context Configuration**: Fine-grained controls (`.contextrc`) defining what sections get injected into prompts.
 - 📍 **Live Module & Line Location Map**: AST & regex indexer tracking where every class/function lives (`file:line-range`), updating automatically after every prompt/edit.
+- ⚡ **Lightweight Code Embeddings**: 256-dim vectorizer & cosine similarity search across functions, classes, and code chunks.
 - 🤖 **Automatic Operation**: Executes automatically on session start without manual invocation.
 - 🔗 **Citations**: Attaches persistent observation IDs (e.g., `OBS-001`, `INV-012`) linking facts to files, lines, and commits.
 
@@ -52,6 +53,7 @@ Executable Python 3 scripts (standard library only) are bundled under `scripts/`
 - `scripts/symbol_indexer.py`: Live module & symbol location mapper (Python AST + polyglot regex) indexing exact line numbers (`L42-L80`), updated after every edit/prompt.
 - `scripts/mem_search.py`: 3-step progressive memory search across observations and brief records.
 - `scripts/progressive_disclosure.py`: Exports layered context (Level 1, 2, or 3) with token count estimations.
+- `scripts/code_embeddings.py`: Ultra-lightweight 256-dim code embedding generator and semantic search engine (offline & fast).
 
 ---
 

@@ -236,47 +236,61 @@ The agent starts in `shop-engine` monorepo:
 
 ## 🛠️ Python Scripts (Immediate Knowledge Fetching)
 
-The skill includes standalone, dependency-free Python scripts in `scripts/` (and `.agents/skills/get-immediate-context/scripts/`):
+All standalone, dependency-free Python scripts live directly inside the skill folder under `.agents/skills/get-immediate-context/scripts/`:
 
 ### 1. `fetch_context.py` - Immediate Knowledge Extractor
 Scans the repository, detects monorepo packages, checks git state, extracts confirmed domain invariants, strips sensitive `<private>` tags, and generates `CONTEXT_BRIEF.md`:
 ```bash
-python scripts/fetch_context.py
+python .agents/skills/get-immediate-context/scripts/fetch_context.py
+
 # Force regeneration even if git state has not changed:
-python scripts/fetch_context.py --force
+python .agents/skills/get-immediate-context/scripts/fetch_context.py --force
 ```
 
 ### 2. `symbol_indexer.py` - Live Module & Symbol Line Locator
 Extracts every module's functions and classes with exact line ranges (`L14-L85`) using native AST (Python) and regex (TypeScript, JS, Go, Rust, C#, Java). Updates live after every prompt in <50ms:
 ```bash
 # Update Section 9 in CONTEXT_BRIEF.md with current line numbers:
-python scripts/symbol_indexer.py
+python .agents/skills/get-immediate-context/scripts/symbol_indexer.py
 
 # Instant locate: find where any function/class lives and on which line:
-python scripts/symbol_indexer.py --locate sanitize
+python .agents/skills/get-immediate-context/scripts/symbol_indexer.py --locate sanitize
 ```
 
-### 2. `mem_search.py` - 3-Step Smart Project Memory Search
+### 3. `mem_search.py` - 3-Step Smart Project Memory Search
 Query past decisions, invariants, or configuration keywords with token estimates before loading:
 ```bash
 # Step 1 & 2: Preview matched candidates with token cost estimates
-python scripts/mem_search.py "discount"
+python .agents/skills/get-immediate-context/scripts/mem_search.py "discount"
 
 # Step 3: Fetch full details for a chosen citation ID
-python scripts/mem_search.py --fetch INV-001
+python .agents/skills/get-immediate-context/scripts/mem_search.py --fetch INV-001
 ```
 
-### 3. `progressive_disclosure.py` - Layered Context Exporter
+### 4. `progressive_disclosure.py` - Layered Context Exporter
 Extracts context at 3 discrete levels with token metrics for prompt injection:
 ```bash
 # Level 1: Index (~100 tokens)
-python scripts/progressive_disclosure.py 1
+python .agents/skills/get-immediate-context/scripts/progressive_disclosure.py 1
 
 # Level 2: Standard OKF Brief (~800 tokens)
-python scripts/progressive_disclosure.py 2
+python .agents/skills/get-immediate-context/scripts/progressive_disclosure.py 2
 
 # Level 3: Deep Dive with topology
-python scripts/progressive_disclosure.py 3
+python .agents/skills/get-immediate-context/scripts/progressive_disclosure.py 3
+```
+
+### 5. `code_embeddings.py` - Ultra-Lightweight Code Embeddings & Semantic Search
+Generates 256-dimensional dense vector embeddings for code chunks (0-download, runs offline in <1s) or neural embeddings via fastembed ONNX:
+```bash
+# Generate/refresh embeddings for all code chunks in the repository:
+python .agents/skills/get-immediate-context/scripts/code_embeddings.py --generate
+
+# Semantic Code Search: Find relevant functions/classes by concept or intent:
+python .agents/skills/get-immediate-context/scripts/code_embeddings.py --search "sanitize user input and tokens"
+
+# Check index dimensions, total chunks, and storage stats:
+python .agents/skills/get-immediate-context/scripts/code_embeddings.py --info
 ```
 
 ---
@@ -290,7 +304,13 @@ your-repository/
 ├── .agents/
 │   └── skills/
 │       └── get-immediate-context/
-│           └── SKILL.md
+│           ├── SKILL.md
+│           └── scripts/
+│               ├── fetch_context.py
+│               ├── symbol_indexer.py
+│               ├── code_embeddings.py
+│               ├── mem_search.py
+│               └── progressive_disclosure.py
 ```
 
 Compatible with:

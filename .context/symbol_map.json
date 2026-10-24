@@ -1,4 +1,62 @@
 {
+  ".agents/skills/get-immediate-context/scripts/code_embeddings.py": [
+    {
+      "symbol": "def tokenize_code()",
+      "kind": "function",
+      "line": 41,
+      "end_line": 52,
+      "loc": "L41-L52"
+    },
+    {
+      "symbol": "def compute_lightweight_embedding()",
+      "kind": "function",
+      "line": 54,
+      "end_line": 78,
+      "loc": "L54-L78"
+    },
+    {
+      "symbol": "def cosine_similarity()",
+      "kind": "function",
+      "line": 80,
+      "end_line": 84,
+      "loc": "L80-L84"
+    },
+    {
+      "symbol": "def get_neural_embeddings()",
+      "kind": "function",
+      "line": 91,
+      "end_line": 101,
+      "loc": "L91-L101"
+    },
+    {
+      "symbol": "def chunk_code_file()",
+      "kind": "function",
+      "line": 106,
+      "end_line": 156,
+      "loc": "L106-L156"
+    },
+    {
+      "symbol": "def generate_code_embeddings()",
+      "kind": "function",
+      "line": 161,
+      "end_line": 209,
+      "loc": "L161-L209"
+    },
+    {
+      "symbol": "def search_code_embeddings()",
+      "kind": "function",
+      "line": 214,
+      "end_line": 256,
+      "loc": "L214-L256"
+    },
+    {
+      "symbol": "def main()",
+      "kind": "function",
+      "line": 258,
+      "end_line": 285,
+      "loc": "L258-L285"
+    }
+  ],
   ".agents/skills/get-immediate-context/scripts/fetch_context.py": [
     {
       "symbol": "def sanitize_text()",

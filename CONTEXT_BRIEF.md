@@ -3,10 +3,10 @@ okf_version: "0.2"
 type: ContextBrief
 title: "get-immediate-context Context Brief"
 description: "High-signal repository orientation, architecture, and domain invariants."
-git_commit: "fc0479af2fc4e74378440cf6578cbca64f44bf15"
+git_commit: "d548d4b15098ba376f981782eefbdd251fc13c8e"
 git_branch: "master"
 repo_type: single-project
-timestamp: "2026-10-24T17:04:54Z"
+timestamp: "2026-10-24T17:12:56Z"
 tags: [context-brief, orientation, architecture]
 ---
 
@@ -47,6 +47,14 @@ Software project codebase.
 ## 9. Live Code Location & Symbol Index (Module -> File : Line)
 | Module / File | Key Symbol | Line Location |
 |---|---|---|
+| `.agents/skills/get-immediate-context/scripts/code_embeddings.py` | `def tokenize_code()` | `L41-L52` |
+| `.agents/skills/get-immediate-context/scripts/code_embeddings.py` | `def compute_lightweight_embedding()` | `L54-L78` |
+| `.agents/skills/get-immediate-context/scripts/code_embeddings.py` | `def cosine_similarity()` | `L80-L84` |
+| `.agents/skills/get-immediate-context/scripts/code_embeddings.py` | `def get_neural_embeddings()` | `L91-L101` |
+| `.agents/skills/get-immediate-context/scripts/code_embeddings.py` | `def chunk_code_file()` | `L106-L156` |
+| `.agents/skills/get-immediate-context/scripts/code_embeddings.py` | `def generate_code_embeddings()` | `L161-L209` |
+| `.agents/skills/get-immediate-context/scripts/code_embeddings.py` | `def search_code_embeddings()` | `L214-L256` |
+| `.agents/skills/get-immediate-context/scripts/code_embeddings.py` | `def main()` | `L258-L285` |
 | `.agents/skills/get-immediate-context/scripts/fetch_context.py` | `def sanitize_text()` | `L36-L41` |
 | `.agents/skills/get-immediate-context/scripts/fetch_context.py` | `def get_git_info()` | `L46-L70` |
 | `.agents/skills/get-immediate-context/scripts/fetch_context.py` | `def get_directory_stack()` | `L97-L113` |
@@ -54,11 +62,3 @@ Software project codebase.
 | `.agents/skills/get-immediate-context/scripts/fetch_context.py` | `def discover_project_structure()` | `L209-L290` |
 | `.agents/skills/get-immediate-context/scripts/fetch_context.py` | `def find_entry_points()` | `L292-L311` |
 | `.agents/skills/get-immediate-context/scripts/fetch_context.py` | `def find_test_commands()` | `L313-L358` |
-| `.agents/skills/get-immediate-context/scripts/fetch_context.py` | `def extract_invariants()` | `L365-L399` |
-| `.agents/skills/get-immediate-context/scripts/fetch_context.py` | `def generate_okf_brief()` | `L404-L530` |
-| `.agents/skills/get-immediate-context/scripts/fetch_context.py` | `def main()` | `L532-L539` |
-| `.agents/skills/get-immediate-context/scripts/mem_search.py` | `def search_memory()` | `L21-L67` |
-| `.agents/skills/get-immediate-context/scripts/mem_search.py` | `def main()` | `L69-L88` |
-| `.agents/skills/get-immediate-context/scripts/progressive_disclosure.py` | `def get_token_count()` | `L21-L22` |
-| `.agents/skills/get-immediate-context/scripts/progressive_disclosure.py` | `def export_progressive_context()` | `L24-L67` |
-| `.agents/skills/get-immediate-context/scripts/progressive_disclosure.py` | `def main()` | `L69-L78` |
