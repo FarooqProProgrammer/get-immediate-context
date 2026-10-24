@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "create-skill": {
+      "source": "dotnet/skills",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/create-skill/SKILL.md",
+      "computedHash": "fc72619041e6c654887c6587c3a99424d8a3be5f4d1423982d5d040f31bc8a46"
+    }
+  }
+}
