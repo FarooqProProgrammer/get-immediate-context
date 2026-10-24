@@ -206,6 +206,14 @@ tags: [context-brief, orientation, memory]
 
 ## References
 
+### External Specifications & Guides
 - [Google Cloud Blog: How the Open Knowledge Format can improve data sharing](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing)
 - [Claude-Mem Architecture & My Work Guide](https://docs.claude-mem.ai/usage/my-work)
 - [Agent Skills Specification](https://agentskills.io/specification)
+
+### Bundled Reference Documentation
+- [Open Knowledge Format Specification](references/open-knowledge-format-spec.md)
+- [Progressive Disclosure & Token Budgeting Guide](references/progressive-disclosure-guide.md)
+- [Lightweight Code Embeddings Architecture](references/code-embeddings-architecture.md)
+- [Monorepo Topology & Workspace Manifests](references/monorepo-topology-guide.md)
+- [Privacy, Secrets Redaction, and Compliance](references/privacy-and-compliance.md)

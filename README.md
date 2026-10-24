@@ -305,12 +305,18 @@ your-repository/
 │   └── skills/
 │       └── get-immediate-context/
 │           ├── SKILL.md
-│           └── scripts/
-│               ├── fetch_context.py
-│               ├── symbol_indexer.py
-│               ├── code_embeddings.py
-│               ├── mem_search.py
-│               └── progressive_disclosure.py
+│           ├── scripts/
+│           │   ├── fetch_context.py
+│           │   ├── symbol_indexer.py
+│           │   ├── code_embeddings.py
+│           │   ├── mem_search.py
+│           │   └── progressive_disclosure.py
+│           └── references/
+│               ├── open-knowledge-format-spec.md
+│               ├── progressive-disclosure-guide.md
+│               ├── code-embeddings-architecture.md
+│               ├── monorepo-topology-guide.md
+│               └── privacy-and-compliance.md
 ```
 
 Compatible with:
@@ -323,6 +329,14 @@ Compatible with:
 
 ## 📚 References
 
+### External Specifications & Guides
 - [Google Cloud Blog: How the Open Knowledge Format can improve data sharing](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing)
 - [Claude-Mem Architecture & My Work Guide](https://docs.claude-mem.ai/usage/my-work)
 - [Agent Skills Specification](https://agentskills.io/specification)
+
+### Bundled Reference Documentation
+- [`references/open-knowledge-format-spec.md`](.agents/skills/get-immediate-context/references/open-knowledge-format-spec.md): Complete specification of OKF v0.2.
+- [`references/progressive-disclosure-guide.md`](.agents/skills/get-immediate-context/references/progressive-disclosure-guide.md): 3-tier token budgeting & context injection model.
+- [`references/code-embeddings-architecture.md`](.agents/skills/get-immediate-context/references/code-embeddings-architecture.md): Subword feature hashing & cosine vector search.
+- [`references/monorepo-topology-guide.md`](.agents/skills/get-immediate-context/references/monorepo-topology-guide.md): Matrix of monorepo manifests across languages.
+- [`references/privacy-and-compliance.md`](.agents/skills/get-immediate-context/references/privacy-and-compliance.md): Secret detection regexes and `<private>` filtering.
